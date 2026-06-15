@@ -1,13 +1,15 @@
 from fastapi import FastAPI, Depends    
-from app.database import engine, get_db
-from app.models.task import Task
+from app.database import engine, get_db, Base
 from app.routes.task import router
 from sqlalchemy.orm import Session
 from app.schemas.task import TaskCreate
 from app.models.user import User
+from app.models.task import Task
 from app.routes.auth import router as auth_router
 
 
+
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(router)
@@ -58,9 +60,6 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {'message': 'Deleted!'}
 
-
-User.metadata.create_all(bind=engine)
-Task.metadata.create_all(bind=engine)
 
 
 app.include_router(auth_router)

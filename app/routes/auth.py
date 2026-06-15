@@ -9,15 +9,37 @@ from app.utils.auth import create_access_token
 
 router = APIRouter(tags=["Authentication"])
 
+
 @router.post('/register')
-def register(user:UserCreate, db:Session = Depends(get_db)):
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    print("EMAIL:", user.email)
+    print("USERNAME:", user.username)
+    print("PASSWORD:", user.password)
+    print("TYPE:", type(user.password))
+    print("LENGTH:", len(user.password))
+
     hashed_password = hash_password(user.password)
-    new_user = User(email=user.email, username=user.username, password=user.password)
+
+    new_user = User(
+        email=user.email,
+        username=user.username,
+        password=hashed_password
+    )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {'message': 'User Registered'}
+
+    return {"message": "User Registered"}
+# @router.post('/register')
+# def register(user:UserCreate, db:Session = Depends(get_db)):
+#     hashed_password = hash_password(user.password)
+#     new_user = User(email=user.email, username=user.username, password=hashed_password)
+
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+#     return {'message': 'User Registered'}
 
 
 @router.post('/login')

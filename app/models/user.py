@@ -7,11 +7,9 @@ class User(Base):
 
     id = Column(Integer, primary_key = True)
     email = Column(String, unique = True)
-    user = Column(String)
+    username = Column(String)
     password = Column(String)
 
-
-task = relationship(
-    "Task",
-    back_populates="owner"
-)
+    tasks = relationship("Task", back_populates="owner")
+    phone_number = Column(String, nullable=True)
+    

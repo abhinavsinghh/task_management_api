@@ -5,16 +5,20 @@ from app.schemas.task import TaskCreate
 from app.models.task import Task
 from app.database import get_db
 from app.utils.auth import get_current_user
+from app.models.user import User
+
 
 router = APIRouter()
 
 @router.post('/tasks')
-def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_task(task: TaskCreate, db: Session = Depends(get_db)
+                #, current_user=Depends(get_current_user)
+                ):
     new_task = Task(
         title = task.title,
         description = task.description,
         status = task.status,
-        user_id = current_user.id
+        #user_id = current_user.id
     )
 
     db.add(new_task)
@@ -23,9 +27,29 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user=De
 
     return new_task
 
-@router.get('/tasks')
-def get_tasks(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    return db.query(Task).filter(Task.user_id == current_user.id).all()
+@router.get("/tasks")
+def get_tasks(
+    status: str = None,
+    priority: str = None,
+    search: str = None,
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    #current_user: User = Depends(get_current_user)
+):
+
+    query = db.query(Task).filter(Task.user_id == current_user.id)
+
+    if status:
+        query = query.filter(Task.status == status)
+
+    if priority:
+        query = query.filter(Task.priority == priority)
+
+    if search:
+        query = query.filter(Task.title.ilike(f"%{search}%"))
+
+    return query.offset(skip).limit(limit).all()
 
 @router.get('/tasks/{task_id}')
 def get_task(task_id:int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
