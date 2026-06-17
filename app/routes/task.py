@@ -6,23 +6,28 @@ from app.models.task import Task
 from app.database import get_db
 from app.utils.auth import get_current_user
 from app.models.user import User
+import json
+from app.utils.redis_client import redis_client
 
 
 router = APIRouter()
 
 @router.post('/tasks')
-def create_task(task: TaskCreate, db: Session = Depends(get_db)
-                #, current_user=Depends(get_current_user)
-                ):
+def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     new_task = Task(
         title = task.title,
         description = task.description,
+        priority = task.priority,
+        due_date = task.due_date,
         status = task.status,
-        #user_id = current_user.id
+        user_id = current_user.id
     )
 
     db.add(new_task)
     db.commit()
+    redis_client.delete(
+        f"tasks_{current_user.id}"
+    )
     db.refresh(new_task)
 
     return new_task
@@ -35,8 +40,12 @@ def get_tasks(
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db),
-    #current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
+    cache_key = f"tasks_{current_user.id}"
+    cached_tasks = redis_client.get(cache_key)
+    if cached_tasks:
+        return json.loads(cached_tasks)
 
     query = db.query(Task).filter(Task.user_id == current_user.id)
 
@@ -49,7 +58,23 @@ def get_tasks(
     if search:
         query = query.filter(Task.title.ilike(f"%{search}%"))
 
-    return query.offset(skip).limit(limit).all()
+    tasks =  query.offset(skip).limit(limit).all()
+
+
+    redis_client.setex(cache_key,
+                       60,
+                       json.dumps(
+                           [
+                               {
+                               "id": task.id,
+                               "title":task.title,
+                               "description": task.description 
+                                }
+                           for task in tasks
+                           ]
+                       )
+                    )
+    return tasks
 
 @router.get('/tasks/{task_id}')
 def get_task(task_id:int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -67,10 +92,13 @@ def update_task(
     db_task.title = task.title
     db_task.description = task.description
     db_task.status = task.status
+    db_task.priority = task.priority
+    db_task.due_date = task.due_date
+
 
     db.commit()
+    redis_client.delete(f"tasks_{current_user.id}")
     db.refresh(db_task)
-
     return db_task
 
 
@@ -84,8 +112,14 @@ def delete_task(task_id: int, db: Session = Depends(get_db), current_user=Depend
     
     db.delete(task)
     db.commit()
+    redis_client.delete(
+        f"tasks_{current_user.id}"
+    )
 
     return {'message' : 'Task Deleted'}
+
+
+
     
 
 
