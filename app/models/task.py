@@ -25,5 +25,5 @@ class Task(Base):
     priority = Column(Enum(PriorityEnum), default = PriorityEnum.MEDIUM)
     due_date = Column(DateTime, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="tasks")
+    #owner = relationship("User", back_populates="tasks")
 

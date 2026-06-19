@@ -10,6 +10,6 @@ class User(Base):
     username = Column(String)
     password = Column(String)
 
-    tasks = relationship("Task", back_populates="owner")
+    #tasks = relationship("Task", back_populates="owner")
     phone_number = Column(String, nullable=True)
     
