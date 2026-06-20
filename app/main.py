@@ -63,3 +63,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
 
 
 app.include_router(auth_router)
+
+@app.get("/")
+def root():
+    return {"Message" : "API Running"}
