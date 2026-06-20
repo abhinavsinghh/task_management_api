@@ -5,17 +5,18 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import    get_db
 from app.models.user import User
+from app.config import (SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES)
 
-SECRET_KEY = 'supersecretkey'
+# SECRET_KEY = 'supersecretkey'
 
-ALGORITHM = 'HS256'
+# ALGORITHM = 'HS256'
 
-ACCESS_TOKEN_EXPIRE_MINUTE = 30
+# ACCESS_TOKEN_EXPIRE_MINUTE = 30
 
 def create_access_token(data: dict):
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTE)
+    expire = datetime.utcnow() + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({'exp': expire})
 
