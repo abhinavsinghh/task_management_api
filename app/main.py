@@ -15,11 +15,6 @@ app = FastAPI()
 app.include_router(router)
 
 
-@app.get('/')
-def home():
-    return {'message': 'Task Management API'}
-
-
 @app.get('/hello')
 def hello():
     return {'message' : 'Hello World'}
