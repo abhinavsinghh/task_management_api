@@ -30,4 +30,4 @@ jobs:
 
             - name: Setup Python
               run: |
-                PYTHONPATH=, pytest
+                PYTHONPATH=. pytest
