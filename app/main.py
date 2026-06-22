@@ -10,7 +10,11 @@ from app.routes.auth import router as auth_router
 
 
 Base.metadata.create_all(bind=engine)
-app = FastAPI()
+app = FastAPI(
+    title = "Task Management API",
+    description = "A production ready task management backend build with FastAPI, PostgreSQL, Redis, Celery and Docker.",
+    version = "1.0.0"
+)
 
 app.include_router(router)
 
@@ -62,3 +66,7 @@ app.include_router(auth_router)
 @app.get("/")
 def root():
     return {"Message" : "API Running"}
+
+@app.get("/health")
+def health_check():
+    return {"Status":"Healthy"}

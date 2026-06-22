@@ -9,12 +9,16 @@ from app.models.user import User
 import json
 from app.utils.redis_client import redis_client
 from app.tasks import test_task, check_overdue_tasks
+from app.schemas.task import TaskResponse
 
 
 
-router = APIRouter()
+router = APIRouter(tags = ["Tasks"])
 
-@router.post('/tasks')
+@router.post(
+        "/tasks",
+        summary="Create a new task",
+        description="Create a new task for authenticated user")
 def create_task(task: TaskCreate, db: Session = Depends(get_db)
                 #, current_user=Depends(get_current_user)
                 ):
@@ -36,7 +40,11 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)
 
     return new_task
 
-@router.get("/tasks")
+@router.get(
+        "/tasks",
+        summary="Get a task",
+        description="Get a task that is already created for authenticated user",
+        response_model=list[TaskResponse])
 def get_tasks(
     status: str = None,
     priority: str = None,
@@ -81,13 +89,19 @@ def get_tasks(
                     )
     return tasks
 
-@router.get('/tasks/{task_id}')
-def get_task(task_id:int, db: Session = Depends(get_db), #current_user=Depends(get_current_user)
-             ):
-    task = db.query(Task)#.filter(Task.id == task_id, Task.user_id == current_user.id).first()
-    return task
+# @router.get(
+#         '/tasks/{task_id}',
+#         summary="Create a new task",
+#         description="Create a new task for authenticated user")
+# def get_task(task_id:int, db: Session = Depends(get_db), #current_user=Depends(get_current_user)
+#              ):
+#     task = db.query(Task)#.filter(Task.id == task_id, Task.user_id == current_user.id).first()
+#     return task
 
-@router.put('/tasks/{task_id}')
+@router.put(
+        '/tasks/{task_id}',
+        summary="Update a existing task",
+        description="Create a new task for authenticated user")
 def update_task(
     task_id:int, task: TaskCreate, db: Session = Depends(get_db)
     #, current_user=Depends(get_current_user)
@@ -115,7 +129,10 @@ def update_task(
 
 
 
-@router.delete('/tasks/{task_id}')
+@router.delete(
+        '/tasks/{task_id}',
+        summary="Delete a existing task",
+        description="Delete a existing task for authenticated user")
 def delete_task(task_id: int, db: Session = Depends(get_db)
                 #, current_user=Depends(get_current_user)
                 ):
@@ -135,7 +152,10 @@ def delete_task(task_id: int, db: Session = Depends(get_db)
 
     return {'message' : 'Task Deleted'}
 
-@router.get("/test-background")
+@router.get(
+        "/test-background",
+        summary="Run a background task",
+        description="Run a background task for authenticated user")
 def run_background_task():
     test_task.delay()
     return {"message": "Task queued"}
@@ -143,13 +163,17 @@ def run_background_task():
 
 
 
-@router.get("/check_overdue")
+@router.get(
+        "/check_overdue",
+        summary="Check a overdue task",
+        description="Check a overdue task for authenticated user")
 def run_overdue_check():
     print("Endpoint hit")
     result = check_overdue_tasks.delay()
     print(result.id)
     return {"message" : {"Checking overdue tasks"}}
     
+
 
 
 
